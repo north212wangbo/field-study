@@ -16,6 +16,6 @@
 @property (nonatomic, assign) CLLocationCoordinate2D theCoordinate;
 //@property (nonatomic, assign) NSString *detail;
 - (id)initWithName:(NSString*)name coordinate:(CLLocationCoordinate2D)coordinate;
-
+- (void)setCoordinate:(CLLocationCoordinate2D)newCoordinate;
 
 @end

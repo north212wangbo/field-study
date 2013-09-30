@@ -141,7 +141,7 @@
 #endif
     
 #ifdef DEVICE_SCHOOL
-    NSString *url = @"http://172.29.0.199:8888/ResearchProject/server-side/get-highest-groupId.php";
+    NSString *url = @"http://69.166.62.3/~bowang/gsoc/get-highest-groupId.php";
 #endif
     
 #ifdef DEVICE_HOME
@@ -177,7 +177,7 @@
 #endif
     
 #ifdef DEVICE_SCHOOL
-    NSString *url = [NSString stringWithFormat:@"http://172.29.0.199:8888/ResearchProject/server-side/contact-list.php?user=%@",delegate.userName];
+    NSString *url = [NSString stringWithFormat:@"http://69.166.62.3/~bowang/gsoc/contact-list.php?user=%@",delegate.userName];
 #endif
     
 #ifdef DEVICE_HOME

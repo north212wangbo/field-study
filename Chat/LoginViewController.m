@@ -49,6 +49,14 @@
 
 -(void)viewDidAppear:(BOOL)animated{
     [self login];
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    NSString *log = [NSString stringWithFormat:@"%@ Entering LoginView\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 - (void)didReceiveMemoryWarning
@@ -65,17 +73,18 @@
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-    if (buttonIndex == 0) {
-        user = [[alertView textFieldAtIndex:0] text];
-        password = [[alertView textFieldAtIndex:1] text];
-        
-        NSLog(@"Login:%@", user);
-        NSLog(@"Password: %@", password);
-        [self authenticate];
-    } else {
-        NSLog(@"Canceled!");
-    }
-
+    if (alertView == alert) {
+        if (buttonIndex == 0) {
+            user = [[alertView textFieldAtIndex:0] text];
+            password = [[alertView textFieldAtIndex:1] text];
+            
+            NSLog(@"Login:%@", user);
+            NSLog(@"Password: %@", password);
+            [self authenticate];
+        } else {
+            NSLog(@"Canceled!");
+        }
+    } 
 }
 
 
@@ -87,13 +96,14 @@
     //For device to access localhost
 #ifdef DEVICE_SCHOOL
     NSString *url = [NSString stringWithFormat:
-                     @"http://172.29.0.199:8888/ResearchProject/server-side/login.php?user=%@&password=%@",user,password];
+                      @"http://69.166.62.3/~bowang/gsoc/login.php?user=%@&password=%@",user,password];
 #endif
     
 #ifdef DEVICE_HOME
     NSString *url = [NSString stringWithFormat:
                      @"http://192.168.0.72:8888/ResearchProject/server-side/login.php?user=%@&password=%@",user,password];
 #endif
+    
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"GET"];
@@ -102,7 +112,7 @@
     conn =[[NSURLConnection alloc] initWithRequest:request delegate:self];
     if (conn)
     {
-        NSLog(@"connected");
+        NSLog(@"login table connected");
         receivedData = [[NSMutableData alloc] init];
     }
     else
@@ -133,10 +143,29 @@ didReceiveResponse:(NSURLResponse *)response
         if ([success isEqualToString:@"1"] ) {
             FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
             delegate.userName = userName;
+            UIAlertView *loginSucceed = [[UIAlertView alloc] initWithTitle:@"Login Successfully" message:@"" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+            [loginSucceed show];
+            
+            NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+            [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+            
+            NSString *log = [NSString stringWithFormat:@"%@ User %@ login succeeded\n",[DateFormatter stringFromDate:[NSDate date]],delegate.userName];
+            NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+            [fileHandle seekToEndOfFile];
+            [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];            
         } else {
             [self shakeView:alert];
             FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
             delegate.userName = nil;
+            [self login];
+            
+            NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+            [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+            
+            NSString *log = [NSString stringWithFormat:@"%@ User login failed\n",[DateFormatter stringFromDate:[NSDate date]]];
+            NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+            [fileHandle seekToEndOfFile];
+            [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
         }
     }
     

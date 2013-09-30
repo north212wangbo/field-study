@@ -10,10 +10,14 @@
 		2CA5A35E17A1D3A400BB16E9 /* NotiView.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CA5A35D17A1D3A400BB16E9 /* NotiView.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2CA5A36017A1D5E600BB16E9 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CA5A35F17A1D5E600BB16E9 /* QuartzCore.framework */; };
 		2CA5A36417A1D64E00BB16E9 /* NSTimer+Blocks.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CA5A36317A1D64E00BB16E9 /* NSTimer+Blocks.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2CB3570C17CBFF1B00953C2B /* wsucouger.png in Resources */ = {isa = PBXBuildFile; fileRef = 2CB3570B17CBFF1B00953C2B /* wsucouger.png */; };
+		2CB3570E17CBFF3B00953C2B /* wsucouger114.png in Resources */ = {isa = PBXBuildFile; fileRef = 2CB3570D17CBFF3B00953C2B /* wsucouger114.png */; };
+		440639ED17F9087000F7A20C /* Readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 440639EC17F9087000F7A20C /* Readme.txt */; };
+		440639F217F90A3800F7A20C /* ChatsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 440639F117F908A200F7A20C /* ChatsViewController.m */; };
+		440639F317F90A3E00F7A20C /* BubbleChatDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 440639EF17F908A200F7A20C /* BubbleChatDetailViewController.m */; };
 		443E9637179CAA1F00F7B8A7 /* MapAnnotationView.m in Sources */ = {isa = PBXBuildFile; fileRef = 443E9636179CAA1E00F7B8A7 /* MapAnnotationView.m */; };
 		443E963A179CE4EA00F7B8A7 /* symbol-moving-annotation.png in Resources */ = {isa = PBXBuildFile; fileRef = 443E9638179CE4EA00F7B8A7 /* symbol-moving-annotation.png */; };
 		443E963B179CE4EA00F7B8A7 /* symbol-moving-annotation@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 443E9639179CE4EA00F7B8A7 /* symbol-moving-annotation@2x.png */; };
-		446414711778EE2E000C442F /* Readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 446414701778EE2E000C442F /* Readme.txt */; };
 		446A1167178110C60098CE4B /* AddNewChatViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 446A1166178110C60098CE4B /* AddNewChatViewController.m */; };
 		446A116B178227730098CE4B /* checked.png in Resources */ = {isa = PBXBuildFile; fileRef = 446A116A178227730098CE4B /* checked.png */; };
 		446A116D17822B520098CE4B /* unchecked.png in Resources */ = {isa = PBXBuildFile; fileRef = 446A116C17822B520098CE4B /* unchecked.png */; };
@@ -27,7 +31,6 @@
 		447341E21777880D00F54DBB /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 447341E11777880D00F54DBB /* Default@2x.png */; };
 		447341E41777880D00F54DBB /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 447341E31777880D00F54DBB /* Default-568h@2x.png */; };
 		447341E71777880D00F54DBB /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 447341E51777880D00F54DBB /* MainStoryboard.storyboard */; };
-		447341F2177788B500F54DBB /* ChatsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 447341F1177788B500F54DBB /* ChatsViewController.m */; };
 		447341F517778C8400F54DBB /* ChatDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 447341F417778C8400F54DBB /* ChatDetailViewController.m */; };
 		44C0D3681787810100245D99 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44C0D3671787810100245D99 /* CoreLocation.framework */; };
 		44C0D36A1787812700245D99 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44C0D3691787812700245D99 /* MapKit.framework */; };
@@ -63,7 +66,6 @@
 		44E859B017950155006113CB /* messageReceived.aiff in Resources */ = {isa = PBXBuildFile; fileRef = 44E8599617950155006113CB /* messageReceived.aiff */; };
 		44E859B117950155006113CB /* messageSent.aiff in Resources */ = {isa = PBXBuildFile; fileRef = 44E8599717950155006113CB /* messageSent.aiff */; };
 		44E859B217950155006113CB /* UIView+AnimationOptionsForCurve.m in Sources */ = {isa = PBXBuildFile; fileRef = 44E8599917950155006113CB /* UIView+AnimationOptionsForCurve.m */; };
-		44E859B51795C342006113CB /* BubbleChatDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 44E859B41795C342006113CB /* BubbleChatDetailViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -72,11 +74,17 @@
 		2CA5A35F17A1D5E600BB16E9 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		2CA5A36217A1D64E00BB16E9 /* NSTimer+Blocks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSTimer+Blocks.h"; sourceTree = "<group>"; };
 		2CA5A36317A1D64E00BB16E9 /* NSTimer+Blocks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSTimer+Blocks.m"; sourceTree = "<group>"; };
+		2CB3570B17CBFF1B00953C2B /* wsucouger.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wsucouger.png; path = ../wsucouger.png; sourceTree = "<group>"; };
+		2CB3570D17CBFF3B00953C2B /* wsucouger114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wsucouger114.png; path = ../wsucouger114.png; sourceTree = "<group>"; };
+		440639EC17F9087000F7A20C /* Readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Readme.txt; sourceTree = "<group>"; };
+		440639EE17F908A200F7A20C /* BubbleChatDetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BubbleChatDetailViewController.h; sourceTree = "<group>"; };
+		440639EF17F908A200F7A20C /* BubbleChatDetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BubbleChatDetailViewController.m; sourceTree = "<group>"; };
+		440639F017F908A200F7A20C /* ChatsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatsViewController.h; sourceTree = "<group>"; };
+		440639F117F908A200F7A20C /* ChatsViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatsViewController.m; sourceTree = "<group>"; };
 		443E9635179CAA1E00F7B8A7 /* MapAnnotationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapAnnotationView.h; sourceTree = "<group>"; };
 		443E9636179CAA1E00F7B8A7 /* MapAnnotationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MapAnnotationView.m; sourceTree = "<group>"; };
 		443E9638179CE4EA00F7B8A7 /* symbol-moving-annotation.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "symbol-moving-annotation.png"; sourceTree = "<group>"; };
 		443E9639179CE4EA00F7B8A7 /* symbol-moving-annotation@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "symbol-moving-annotation@2x.png"; sourceTree = "<group>"; };
-		446414701778EE2E000C442F /* Readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Readme.txt; sourceTree = "<group>"; };
 		446A1165178110C50098CE4B /* AddNewChatViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AddNewChatViewController.h; sourceTree = "<group>"; };
 		446A1166178110C60098CE4B /* AddNewChatViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AddNewChatViewController.m; sourceTree = "<group>"; };
 		446A116A178227730098CE4B /* checked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = checked.png; sourceTree = "<group>"; };
@@ -95,8 +103,6 @@
 		447341E11777880D00F54DBB /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		447341E31777880D00F54DBB /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		447341E61777880D00F54DBB /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
-		447341F0177788B500F54DBB /* ChatsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChatsViewController.h; sourceTree = SOURCE_ROOT; };
-		447341F1177788B500F54DBB /* ChatsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChatsViewController.m; sourceTree = SOURCE_ROOT; };
 		447341F317778C8400F54DBB /* ChatDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChatDetailViewController.h; sourceTree = "<group>"; };
 		447341F417778C8400F54DBB /* ChatDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChatDetailViewController.m; sourceTree = "<group>"; };
 		44C0D3671787810100245D99 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
@@ -145,8 +151,6 @@
 		44E8599717950155006113CB /* messageSent.aiff */ = {isa = PBXFileReference; lastKnownFileType = audio.aiff; path = messageSent.aiff; sourceTree = "<group>"; };
 		44E8599817950155006113CB /* UIView+AnimationOptionsForCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+AnimationOptionsForCurve.h"; sourceTree = "<group>"; };
 		44E8599917950155006113CB /* UIView+AnimationOptionsForCurve.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+AnimationOptionsForCurve.m"; sourceTree = "<group>"; };
-		44E859B31795C342006113CB /* BubbleChatDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BubbleChatDetailViewController.h; path = ../BubbleChatDetailViewController.h; sourceTree = "<group>"; };
-		44E859B41795C342006113CB /* BubbleChatDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BubbleChatDetailViewController.m; path = ../BubbleChatDetailViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -238,9 +242,11 @@
 		447341D41777880D00F54DBB /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				2CB3570D17CBFF3B00953C2B /* wsucouger114.png */,
+				2CB3570B17CBFF1B00953C2B /* wsucouger.png */,
 				447341D51777880D00F54DBB /* FieldStdy-Info.plist */,
-				446414701778EE2E000C442F /* Readme.txt */,
 				447341D61777880D00F54DBB /* InfoPlist.strings */,
+				440639EC17F9087000F7A20C /* Readme.txt */,
 				447341D91777880D00F54DBB /* main.m */,
 				447341DB1777880D00F54DBB /* FieldStdy-Prefix.pch */,
 				447341DF1777880D00F54DBB /* Default.png */,
@@ -262,10 +268,10 @@
 				446A1166178110C60098CE4B /* AddNewChatViewController.m */,
 				447341F317778C8400F54DBB /* ChatDetailViewController.h */,
 				447341F417778C8400F54DBB /* ChatDetailViewController.m */,
-				447341F0177788B500F54DBB /* ChatsViewController.h */,
-				447341F1177788B500F54DBB /* ChatsViewController.m */,
-				44E859B31795C342006113CB /* BubbleChatDetailViewController.h */,
-				44E859B41795C342006113CB /* BubbleChatDetailViewController.m */,
+				440639EE17F908A200F7A20C /* BubbleChatDetailViewController.h */,
+				440639EF17F908A200F7A20C /* BubbleChatDetailViewController.m */,
+				440639F017F908A200F7A20C /* ChatsViewController.h */,
+				440639F117F908A200F7A20C /* ChatsViewController.m */,
 				44E8597617950155006113CB /* MessagesTableViewController */,
 			);
 			name = Message;
@@ -424,7 +430,6 @@
 				447341E21777880D00F54DBB /* Default@2x.png in Resources */,
 				447341E41777880D00F54DBB /* Default-568h@2x.png in Resources */,
 				447341E71777880D00F54DBB /* MainStoryboard.storyboard in Resources */,
-				446414711778EE2E000C442F /* Readme.txt in Resources */,
 				446A116B178227730098CE4B /* checked.png in Resources */,
 				446A116D17822B520098CE4B /* unchecked.png in Resources */,
 				44C0D36F17878DF100245D99 /* navigator.png in Resources */,
@@ -448,6 +453,9 @@
 				44E859B117950155006113CB /* messageSent.aiff in Resources */,
 				443E963A179CE4EA00F7B8A7 /* symbol-moving-annotation.png in Resources */,
 				443E963B179CE4EA00F7B8A7 /* symbol-moving-annotation@2x.png in Resources */,
+				2CB3570C17CBFF1B00953C2B /* wsucouger.png in Resources */,
+				2CB3570E17CBFF3B00953C2B /* wsucouger114.png in Resources */,
+				440639ED17F9087000F7A20C /* Readme.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -458,9 +466,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				440639F317F90A3E00F7A20C /* BubbleChatDetailViewController.m in Sources */,
+				440639F217F90A3800F7A20C /* ChatsViewController.m in Sources */,
 				447341DA1777880D00F54DBB /* main.m in Sources */,
 				447341DE1777880D00F54DBB /* FieldStudyAppDelegate.m in Sources */,
-				447341F2177788B500F54DBB /* ChatsViewController.m in Sources */,
 				447341F517778C8400F54DBB /* ChatDetailViewController.m in Sources */,
 				446A1167178110C60098CE4B /* AddNewChatViewController.m in Sources */,
 				44C0D36D1787860E00245D99 /* MapViewController.m in Sources */,
@@ -475,7 +484,6 @@
 				44E8599E17950155006113CB /* MessagesViewController.m in Sources */,
 				44E8599F17950155006113CB /* NSString+MessagesView.m in Sources */,
 				44E859B217950155006113CB /* UIView+AnimationOptionsForCurve.m in Sources */,
-				44E859B51795C342006113CB /* BubbleChatDetailViewController.m in Sources */,
 				443E9637179CAA1F00F7B8A7 /* MapAnnotationView.m in Sources */,
 				2CA5A35E17A1D3A400BB16E9 /* NotiView.m in Sources */,
 				2CA5A36417A1D64E00BB16E9 /* NSTimer+Blocks.m in Sources */,
@@ -566,6 +574,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Chat/FieldStdy-Prefix.pch";
 				INFOPLIST_FILE = "Chat/FieldStdy-Info.plist";
+				"INFOPLIST_FILE[sdk=*]" = "Chat/FieldStdy-Info.plist";
 				PRODUCT_NAME = FieldStdy;
 				WRAPPER_EXTENSION = app;
 			};

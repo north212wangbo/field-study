@@ -60,6 +60,14 @@
 
 -(void)viewDidAppear:(BOOL)animated{
     [self getGrouplist];
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    NSString *log = [NSString stringWithFormat:@"%@ Entering ChatsView\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 - (void)didReceiveMemoryWarning
@@ -178,7 +186,7 @@
     
 #ifdef DEVICE_SCHOOL
     NSString *url = [NSString stringWithFormat:
-                     @"http://172.29.0.199:8888/ResearchProject/server-side/group-list.php?user=%@",delegate.userName];
+                     @"http://69.166.62.3/~bowang/gsoc/group-list.php?user=%@",delegate.userName];
 #endif
     
 #ifdef DEVICE_HOME
@@ -192,7 +200,7 @@
     conn1=[[NSURLConnection alloc] initWithRequest:request delegate:self];
     if (conn1)
     {
-        NSLog(@"connected");
+        NSLog(@"chat group connected");
         receivedData = [[NSMutableData alloc] init];
     }
     else

@@ -10,7 +10,7 @@
 #import "FieldStudyAppDelegate.h"
 #import "MessageInputView.h"
 #define DEVICE_SCHOOL
-//#define DEVICE_HOME
+// #define DEVICE_HOME
 
 
 @interface BubbleChatDetailViewController () {
@@ -55,17 +55,24 @@
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     self.messages =[[prefs objectForKey:self.groupId] mutableCopy];
     lastId = [prefs integerForKey:@"lastId"];
-    if (self.messages == nil) {
-        self.messages =  nil;
-        NSLog(@"message is nil");
-        [self getNewMessages];
-    }
-    
-    //Reset message, just for testing use
-    self.messages = nil;
-    lastId = 0;
     [self getNewMessages];
     
+    //Reset message, just for testing use
+//    self.messages = nil;
+//    lastId = 0;
+//    [self getNewMessages];
+    
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    NSString *log = [NSString stringWithFormat:@"%@ Entering ChatsDetailView\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 - (void)didReceiveMemoryWarning
@@ -82,7 +89,7 @@
     
 #ifdef DEVICE_SCHOOL
     NSString *url = [NSString stringWithFormat:
-                     @"http://172.29.0.199:8888/ResearchProject/server-side/messages.php?past=%d&t=%ld&groupId=%@",lastId,time(0),self.groupId];
+                     @"http://69.166.62.3/~bowang/gsoc/messages.php?past=%d&t=%ld&groupId=%@",lastId,time(0),self.groupId];
 #endif
     
 #ifdef DEVICE_HOME
@@ -98,7 +105,7 @@
     NSURLConnection *conn=[[NSURLConnection alloc] initWithRequest:request delegate:self];
     if (conn)
     {
-        NSLog(@"connected");
+        NSLog(@"chatitems connected");
         receivedData = [[NSMutableData alloc] init];
     }
     else
@@ -148,7 +155,7 @@
         
 #ifdef DEVICE_SCHOOL
         NSString *url = [NSString stringWithFormat:
-                         @"http://172.29.0.199:8888/ResearchProject/server-side/add.php"];
+                         @"http://69.166.62.3/~bowang/gsoc/add.php"];
 #endif
         
 #ifdef DEVICE_HOME
@@ -169,7 +176,17 @@
         [NSURLConnection sendSynchronousRequest:request
                               returningResponse:&response error:&error];
         
-        [self getNewMessages];
+        FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+        
+        NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+        [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+        NSString *log = [NSString stringWithFormat:@"%@ Sending new message...\n",[DateFormatter stringFromDate:[NSDate date]]];
+        NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+        [fileHandle seekToEndOfFile];
+        [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+        
+        //does not call |getNewMessages| because every call add a new time call back.
+        //[self getNewMessages];
     }
 }
 
@@ -213,6 +230,15 @@ didReceiveResponse:(NSURLResponse *)response
     [invocation setSelector:@selector(timerCallback)];
     timer = [NSTimer scheduledTimerWithTimeInterval:5.0
                                          invocation:invocation repeats:NO];
+    
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    NSString *log = [NSString stringWithFormat:@"%@ Fetching Messages...\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 - (void)timerCallback {
@@ -260,7 +286,7 @@ didStartElement:(NSString *)elementName
         
         lastId = msgId;
         hasNewMessage = YES;
-
+        
     }
     if ( [elementName isEqualToString:@"user"] ) {
         inUser = NO;

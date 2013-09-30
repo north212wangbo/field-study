@@ -8,8 +8,8 @@
 
 #import "ChatDetailViewController.h"
 #import "FieldStudyAppDelegate.h"
-//#define DEVICE_SCHOOL
-#define DEVICE_HOME
+#define DEVICE_SCHOOL
+//#define DEVICE_HOME
 
 @interface ChatDetailViewController () {
     

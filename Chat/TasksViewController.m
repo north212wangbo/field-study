@@ -12,12 +12,11 @@
 #define DEVICE_SCHOOL
 //#define DEVICE_HOME
 
-
-//To do: pull down to refresh
 @interface TasksViewController () {
     NSMutableArray *tasks;
     NSMutableArray *tasksFinished;
-    
+    NSTimer *timer;
+        
     NSString *user;
     NSMutableData *receivedData;
     NSXMLParser *parser;
@@ -27,12 +26,21 @@
     Boolean inAmount;
     Boolean inDesc;
     Boolean inCompleted;
+    Boolean inTstamp;
+    Boolean inSampleUpdate;
     NSString *sampleName;
     NSString *amount;
     NSString *desc;
     NSString *sampleId;
     NSString *completed;
+    NSString *tstamp;
+    NSString *tstampSample;
     NSDictionary *taskInfo;
+    
+    NSString *refreshDateString;
+    NSString *refreshSampleDateString;
+    
+    Boolean getTaskManually;
 }
 
 @end
@@ -52,21 +60,29 @@
 {
     [super viewDidLoad];
     tasksFinished = [[NSMutableArray alloc] init];
-    // Uncomment the following line to preserve selection between presentations.
-    //self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
+
      self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
     UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl addTarget:self action:@selector(getTaskList) forControlEvents:UIControlEventValueChanged];
+    [refreshControl addTarget:self action:@selector(getTaskListManually) forControlEvents:UIControlEventValueChanged];
     self.refreshControl = refreshControl;
     
+    refreshDateString = @"1970-01-01 00:00:00";
+    refreshSampleDateString = @"1970-01-01 00:00:00";
+
     [self getTaskList];
 }
 
 -(void)viewDidAppear:(BOOL)animated{
-    [self getTaskList];
+    //[self getTaskList];
+     FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    NSString *log = [NSString stringWithFormat:@"%@ Entering TaskView\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 - (void)didReceiveMemoryWarning
@@ -84,6 +100,9 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
+    for (int i=0; i<[tasks count]; i++) {
+        [tasksFinished addObject:@"FALSE"];
+    }
     return (tasks == nil)? 0:[tasks count];
 }
 
@@ -109,13 +128,8 @@
     cell.detailTextLabel.text = [itemAtIndex objectForKey:@"desc"];
     cell.detailTextLabel.font = [UIFont systemFontOfSize:15];
     
-    BOOL checked = [[itemAtIndex objectForKey:@"completed"] boolValue];
+    BOOL checked = [[tasksFinished objectAtIndex:indexPath.row] boolValue];
     UIImage *image = (checked)? [UIImage imageNamed:@"checked.png"]:[UIImage imageNamed:@"unchecked.png"];
-    if (checked) {
-        [tasksFinished insertObject:@"True" atIndex:indexPath.row];
-    } else {
-        [tasksFinished insertObject:@"False" atIndex:indexPath.row];
-    }
     
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     CGRect frame = CGRectMake(0.0, 0.0, image.size.width, image.size.height);
@@ -216,15 +230,22 @@
 
 #pragma mark - get task list
 
+-(void)getTaskListManually  {
+    getTaskManually = YES;
+    [self getTaskList];
+}
+
 -(void)getTaskList{
     FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    user = delegate.userName;
+    
 #ifdef DEVICE_SCHOOL
-    NSString *url = [NSString stringWithFormat:@"http://172.29.0.199:8888/ResearchProject/server-side/get-student-tasks.php?user=%@",delegate.userName];
+    NSString *url = [NSString stringWithFormat:@"http://69.166.62.3/~bowang/gsoc/get-student-tasks.php?user=%@",user];
     
 #endif
     
 #ifdef DEVICE_HOME
-    NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/get-student-tasks.php?user=%@",delegate.userName];
+    NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/get-student-tasks.php?user=%@",user];
 #endif
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
@@ -234,7 +255,7 @@
     conn1=[[NSURLConnection alloc] initWithRequest:request delegate:self];
     if (conn1)
     {
-        NSLog(@"connected");
+        NSLog(@"get tasklist connected");
         receivedData = [[NSMutableData alloc] init];
     }
     else
@@ -260,19 +281,80 @@
         if ( tasks == nil )
             tasks = [[NSMutableArray alloc] init];
         
-        [tasks removeAllObjects];  //remove the record of previous user, should find better way
+        [tasks removeAllObjects];  //remove the record of previous user, so that records don't get repeated; should find better way
         parser = [[NSXMLParser alloc] initWithData:receivedData];
         [parser setDelegate:self];
         [parser parse];
         [self.tableView reloadData];
         [self.refreshControl endRefreshing];
+        
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+        [dateFormatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"..."]];
+        
+        NSDate *refreshDate = [dateFormatter dateFromString:refreshDateString];
+        NSDate *refreshSampleDate = [dateFormatter dateFromString:refreshSampleDateString];
+        for (id task in tasks) {
+            NSString *timeStamp = [task objectForKey:@"tstamp"];
+            NSDate *nextRefreshDate = [dateFormatter dateFromString:timeStamp];
+            
+            NSString *sampleTimeStamp = [task objectForKey:@"sampleUpdated"];
+            NSDate *nextRefreshSampleDate = [dateFormatter dateFromString:sampleTimeStamp];
+            
+            if ([nextRefreshDate compare:refreshDate] == NSOrderedDescending) {
+                refreshDate = nextRefreshDate;
+            }
+            
+            if ([nextRefreshSampleDate compare:refreshSampleDate] == NSOrderedDescending) {
+                refreshSampleDate = nextRefreshSampleDate;
+            }
+        }
+        NSString *newRefreshDateString = [dateFormatter stringFromDate:refreshDate];
+        NSString *newRefreshSampleDateString = [dateFormatter stringFromDate:refreshSampleDate];
+        
+        if (![newRefreshDateString isEqualToString:refreshDateString] || ![newRefreshSampleDateString isEqualToString:refreshSampleDateString] ) {
+            refreshDateString = newRefreshDateString;
+            refreshSampleDateString = newRefreshSampleDateString;
+            NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:user,@"user",nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"taskUpdate" object:self userInfo:dict];
+        }
+        
+        if (!getTaskManually) {
+            NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:
+                                        [self methodSignatureForSelector: @selector(timerCallback)]];
+            [invocation setTarget:self];
+            [invocation setSelector:@selector(timerCallback)];
+            timer = [NSTimer scheduledTimerWithTimeInterval:5.0
+                                                 invocation:invocation repeats:NO];
+        }
+        getTaskManually = NO;
+        
+        FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+        
+        NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+        [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+        NSString *log = [NSString stringWithFormat:@"%@ Task refreshed!\n",[DateFormatter stringFromDate:[NSDate date]]];
+        NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+        [fileHandle seekToEndOfFile];
+        [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+        
     } else if (connection == conn2) {
         [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
         self.submitButton.enabled = YES;
-        NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:user,@"user",nil];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"taskUpdate" object:self userInfo:dict];
+        
+        FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+        
+        NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+        [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+        NSString *log = [NSString stringWithFormat:@"%@ User submitted a task\n",[DateFormatter stringFromDate:[NSDate date]]];
+        NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+        [fileHandle seekToEndOfFile];
+        [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
     }
-    
+}
+
+- (void)timerCallback {
+    [self getTaskList];
 }
 
 - (void)parser:(NSXMLParser *)parser
@@ -285,6 +367,8 @@ didStartElement:(NSString *)elementName
         inName = NO;
         inAmount = NO;
         inDesc =NO;
+        inTstamp = NO;
+        inSampleUpdate = NO;
     }
     if ([elementName isEqualToString:@"name"]) {
         inName = YES;
@@ -298,6 +382,13 @@ didStartElement:(NSString *)elementName
     if ([elementName isEqualToString:@"completed"]) {
         inCompleted = YES;
     }
+    if ([elementName isEqualToString:@"tstamp"]) {
+        inTstamp = YES;
+    }
+    if ([elementName isEqualToString:@"sampleUpdated"]) {
+        inSampleUpdate = YES;
+    }
+    
 }
 
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string {
@@ -313,13 +404,20 @@ didStartElement:(NSString *)elementName
     if ( inCompleted ) {
         completed = string;
     }
+    if ( inTstamp ) {
+        tstamp = string;
+    }
+    if ( inSampleUpdate ) {
+        tstampSample = string;
+    }
 }
 
 - (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName
   namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName {
     if ( [elementName isEqualToString:@"sample"] ) {
-        taskInfo = [NSDictionary dictionaryWithObjectsAndKeys:sampleName, @"name",amount,@"amount",desc,@"desc",sampleId,@"id",completed,@"completed",nil];
+        taskInfo = [NSDictionary dictionaryWithObjectsAndKeys:sampleName, @"name",amount,@"amount",desc,@"desc",sampleId,@"id",completed,@"completed",tstamp,@"tstamp",tstampSample,@"sampleUpdated", nil];
         [tasks addObject:taskInfo];
+        [tasksFinished addObject:@"FALSE"];
     }
     
     if ( [elementName isEqualToString:@"name"] ) {
@@ -334,23 +432,28 @@ didStartElement:(NSString *)elementName
     if ( [elementName isEqualToString:@"completed"] ) {
         inCompleted = NO;
     }
+    if ( [elementName isEqualToString:@"tstamp"] ) {
+        inTstamp = NO;
+    }
+    if ( [elementName isEqualToString:@"sampleUpdated"] ) {
+        inSampleUpdate = NO;
+    }
 }
 
 - (IBAction)submit:(id)sender {
     self.submitButton.enabled = NO;
     [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
     
-    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
     for (int i=0; i<[tasks count];i++) {
         if ([[tasksFinished objectAtIndex:i] boolValue]==YES) {
             NSDictionary *itemAtIndex = [tasks objectAtIndex:i];
             NSString *saID = [itemAtIndex objectForKey:@"id"];
 #ifdef DEVICE_SCHOOL
-            NSString *url = [NSString stringWithFormat:@"http://172.29.0.199:8888/ResearchProject/server-side/update-task-status.php?user=%@&sample=%@&finish=YES",delegate.userName,saID];
+            NSString *url = [NSString stringWithFormat:@"http://69.166.62.3/~bowang/gsoc/update-task-status.php?user=%@&sample=%@&finish=YES",user,saID];
 #endif
             
 #ifdef DEVICE_HOME
-            NSString *url =[NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/update-task-status.php?user=%@&sample=%@&finish=YES",delegate.userName,saID];
+            NSString *url =[NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/update-task-status.php?user=%@&sample=%@&finish=YES",user,saID];
 #endif
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             [request setURL:[NSURL URLWithString:url]];
@@ -371,11 +474,11 @@ didStartElement:(NSString *)elementName
             NSDictionary *itemAtIndex = [tasks objectAtIndex:i];
             NSString *saID = [NSString stringWithFormat:@"%@",[itemAtIndex objectForKey:@"id"]];
 #ifdef DEVICE_SCHOOL
-            NSString *url = [NSString stringWithFormat:@"http://172.29.0.199:8888/ResearchProject/server-side/update-task-status.php?user=%@&sample=%@&finish=NO",delegate.userName,saID];
+            NSString *url = [NSString stringWithFormat:@"http://69.166.62.3/~bowang/gsoc/update-task-status.php?user=%@&sample=%@&finish=NO",user,saID];
 #endif
             
 #ifdef DEVICE_HOME
-            NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/update-task-status.php?user=%@&sample=%@&finish=NO",delegate.userName,saID];
+            NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/update-task-status.php?user=%@&sample=%@&finish=NO",user,saID];
 #endif
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             [request setURL:[NSURL URLWithString:url]];

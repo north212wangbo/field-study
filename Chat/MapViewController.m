@@ -30,7 +30,10 @@
     Boolean inLatitude;
     Boolean inLongitude;
     
+    NSTimer *timer;
+    
     UIButton *refreshButton;
+    Boolean refreshButtonTapped;
 }
 
 @end
@@ -76,21 +79,31 @@
     refreshButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [refreshButton addTarget:self action:@selector(refresh) forControlEvents:UIControlEventTouchDown];
     [refreshButton setImage:[UIImage imageNamed:@"navigator.png"] forState:UIControlStateNormal];
-    //refreshButton.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+    //refreshButton.imageEdgeInsets = UIEdgeInsetsMake(10, 10, 10, 10);
     [self.FieldMapView addSubview:refreshButton];
     
+    [self getLocations];
 }
 
 -(void)viewDidAppear:(BOOL)animated
 {
     [self.navigationController setNavigationBarHidden:YES animated:YES];
+    
+     FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    NSString *log = [NSString stringWithFormat:@"%@ Entering MapView\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 -(void)viewWillLayoutSubviews {
     const CGRect viewBounds = self.view.bounds;
     const bool isPortrait = viewBounds.size.height >= viewBounds.size.width;
     if (isPortrait) {
-        refreshButton.frame = CGRectMake(10, self.FieldMapView.bounds.size.height-45, 40,40);
+        refreshButton.frame = CGRectMake(self.FieldMapView.bounds.size.width-45, self.FieldMapView.bounds.size.height-45, 40,40);
     } else {
         refreshButton.frame = CGRectMake(10, self.FieldMapView.bounds.size.width-45, 40,40);
     }
@@ -112,6 +125,7 @@
 }
 
 -(void)refresh{
+    refreshButtonTapped = YES;
     FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
     if (delegate.userName != nil){
         
@@ -128,12 +142,13 @@
 #endif
     
 #ifdef DEVICE_SCHOOL
-    NSString *url = [NSString stringWithFormat:@"http://172.29.0.199:8888/ResearchProject/server-side/update-user-location.php?user=%@&latitude=%f&longitude=%f", delegate.userName, self.FieldMapView.userLocation.coordinate.latitude, self.FieldMapView.userLocation.coordinate.longitude];
+    NSString *url = [NSString stringWithFormat:@"http://69.166.62.3/~bowang/gsoc/update-user-location.php?user=%@&latitude=%f&longitude=%f", delegate.userName, self.FieldMapView.userLocation.coordinate.latitude, self.FieldMapView.userLocation.coordinate.longitude];
 #endif
     
 #ifdef DEVICE_HOME
         NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/update-user-location.php?user=%@&latitude=%f&longitude=%f", delegate.userName, self.FieldMapView.userLocation.coordinate.latitude, self.FieldMapView.userLocation.coordinate.longitude];
 #endif
+        
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc]
                                         init];
@@ -149,31 +164,31 @@
 -(void)getLocations{
     FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
 #ifdef SIMULATOR
-    NSString *url = [NSString stringWithFormat:@"http://localhost:8888/ResearchProject/server-side/get-group-location.php?user=%@",delegate.userName];
+        NSString *url = [NSString stringWithFormat:@"http://localhost:8888/ResearchProject/server-side/get-group-location.php?user=%@",delegate.userName];
 #endif
-    
+        
 #ifdef DEVICE_SCHOOL
-    NSString *url = [NSString stringWithFormat:@"http://172.29.0.199:8888/ResearchProject/server-side/get-group-location.php?user=%@",delegate.userName];
+        NSString *url = [NSString stringWithFormat:@"http://69.166.62.3/~bowang/gsoc/get-group-location.php?user=%@",delegate.userName];
 #endif
-    
+        
 #ifdef DEVICE_HOME
-    NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/get-group-location.php?user=%@",delegate.userName];
+        NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/get-group-location.php?user=%@",delegate.userName];
 #endif
-    
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    [request setURL:[NSURL URLWithString:url]];
-    [request setHTTPMethod:@"GET"];
-    
-    NSURLConnection *conn=[[NSURLConnection alloc] initWithRequest:request delegate:self];
-    if (conn)
-    {
-        NSLog(@"connected");
-        receivedData = [[NSMutableData alloc] init];
-    }
-    else
-    {
-        NSLog(@"not connected");
-    }
+        
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+        [request setURL:[NSURL URLWithString:url]];
+        [request setHTTPMethod:@"GET"];
+        
+        NSURLConnection *conn=[[NSURLConnection alloc] initWithRequest:request delegate:self];
+        if (conn)
+        {
+            NSLog(@"location data connected");
+            receivedData = [[NSMutableData alloc] init];
+        }
+        else
+        {
+            NSLog(@"not connected");
+        }
 }
 
 - (void)connection:(NSURLConnection *)connection
@@ -190,38 +205,79 @@ didReceiveResponse:(NSURLResponse *)response
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    if (delegate.userName != nil) {
+        if ( locations == nil )
+            locations = [[NSMutableArray alloc] init];
+        
+        [locations removeAllObjects];
+        //    [annotations removeAllObjects];
+        
+        locationParser = [[NSXMLParser alloc] initWithData:receivedData];
+        [locationParser setDelegate:self];
+        [locationParser parse];
+        
+        //To do: change annotation style
+        //Remove all the previous annotations except for the user location annotation
+        
+        //    while ([self.FieldMapView.annotations count] > 1) {
+        //        [self.FieldMapView removeAnnotation:[self.FieldMapView.annotations lastObject]];
+        //    }
+        //
+        NSLog(@"annotation count: %d",[self.FieldMapView.annotations count]);
+        NSLog(@"annotation count #: %d",[annotations count]);
+        
+        if (refreshButtonTapped) { //If refresh button is tapped, zoom to user location
+            MKCoordinateRegion viewRegion = MKCoordinateRegionMakeWithDistance(self.FieldMapView.userLocation.coordinate, 1*METERS_PER_MILE, 1*METERS_PER_MILE);
+            [self.FieldMapView setRegion:viewRegion animated:YES];
+        }
+        
+        for (id item in locations) {
+            Boolean newAnnotation = YES;
+            CLLocationCoordinate2D currLocation;
+            currLocation.latitude = [[item objectForKey:@"latitude"] doubleValue];
+            currLocation.longitude = [[item objectForKey:@"longitude"] doubleValue];
+            NSString *currName = [item objectForKey:@"name"];
+            
+            for (MyLocation *annotation in self.FieldMapView.annotations) {
+                if ([annotation.title isEqualToString:currName]) {
+                    [annotation setCoordinate:currLocation];
+                    newAnnotation = NO;
+                    continue;
+                }
+            }
+            if (newAnnotation) {
+                MyLocation *annotation = [[MyLocation alloc] initWithName:currName coordinate:currLocation];
+                [self.FieldMapView addAnnotation:annotation];
+                [annotations addObject:annotation];            
+            }
+            
+        }
+    }
+
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    NSString *log = [NSString stringWithFormat:@"%@ locations updated\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
     
-    if ( locations == nil )
-        locations = [[NSMutableArray alloc] init];
-    
-    [locations removeAllObjects];
-    [annotations removeAllObjects];
-    
-    locationParser = [[NSXMLParser alloc] initWithData:receivedData];
-    [locationParser setDelegate:self];
-    [locationParser parse];
-    
-    //To do: change annotation style
-    //Remove all the previous annotations except for the user location annotation
-    
-    while ([self.FieldMapView.annotations count] > 1) {
-        [self.FieldMapView removeAnnotation:[self.FieldMapView.annotations lastObject]];
+    if (refreshButtonTapped == NO) {
+        NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:
+                                    [self methodSignatureForSelector: @selector(timerCallback)]];
+        [invocation setTarget:self];
+        [invocation setSelector:@selector(timerCallback)];
+        timer = [NSTimer scheduledTimerWithTimeInterval:5.0
+                                             invocation:invocation repeats:NO];
+    } else {
+        refreshButtonTapped = NO;
     }
     
-    NSLog(@"annotation count: %d",[self.FieldMapView.annotations count]);
-    MKCoordinateRegion viewRegion = MKCoordinateRegionMakeWithDistance(self.FieldMapView.userLocation.coordinate, 1*METERS_PER_MILE, 1*METERS_PER_MILE);
-    [self.FieldMapView setRegion:viewRegion animated:YES];
-    
-    for (id item in locations) {
-        CLLocationCoordinate2D currLocation;
-        currLocation.latitude = [[item objectForKey:@"latitude"] doubleValue];
-        currLocation.longitude = [[item objectForKey:@"longitude"] doubleValue];
-        NSString *currName = [item objectForKey:@"name"];
-        MyLocation *annotation = [[MyLocation alloc] initWithName:currName coordinate:currLocation];
-        [self.FieldMapView addAnnotation:annotation];
-        [annotations addObject:annotation];
-    }
-    
+}
+
+- (void)timerCallback {
+    [self updateUserLocation];
+    [self getLocations];
 }
 
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName
@@ -345,8 +401,7 @@ didReceiveResponse:(NSURLResponse *)response
     } else if ([[note name] isEqualToString:@"taskUpdate"]) {
         NSDictionary *dataDict = [note userInfo];
         NSString *user = [dataDict objectForKey:@"user"];
-        NSString *detail = @"completed some tasks";
-        
+        NSString *detail = @"You have task updates";
         NotiView *nv = [[NotiView alloc] initWithTitle:user detail:detail icon:nil];
         
         CGRect f = nv.frame;
