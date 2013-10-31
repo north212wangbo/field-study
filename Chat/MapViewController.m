@@ -16,6 +16,14 @@
 #define METERS_PER_MILE 1609.344
 #define DEVICE_SCHOOL
 //#define DEVICE_HOME
+#define TEST
+//#define SWITCHVIEW
+//#define TESTTIME
+//#define SWITCHVIEWTIME
+
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#include <unistd.h>
 
 @interface MapViewController () {
     CLLocationManager *locationManager;
@@ -34,6 +42,10 @@
     
     UIButton *refreshButton;
     Boolean refreshButtonTapped;
+
+    double        start;
+    double        end;
+    double        elapsed;
 }
 
 @end
@@ -81,8 +93,10 @@
     [refreshButton setImage:[UIImage imageNamed:@"navigator.png"] forState:UIControlStateNormal];
     //refreshButton.imageEdgeInsets = UIEdgeInsetsMake(10, 10, 10, 10);
     [self.FieldMapView addSubview:refreshButton];
-    
+
+#ifndef TEST
     [self getLocations];
+#endif
 }
 
 -(void)viewDidAppear:(BOOL)animated
@@ -97,6 +111,37 @@
     NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+
+#ifdef SWITCHVIEW
+//    [NSTimer scheduledTimerWithTimeInterval:5.0f
+//                                     target:self
+//                                   selector: @selector(switchView)
+//                                   userInfo:nil
+//                                    repeats:NO];
+    [self switchView];
+#endif
+}
+
+-(void)switchView{
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+#ifdef  SWITCHVIEWTIME
+    start = CACurrentMediaTime();
+#endif
+    
+    [self.tabBarController setSelectedIndex:1];
+    
+
+#ifdef SWITCHVIEWTIME
+    NSString *log;
+    NSFileHandle *fileHandle;
+    end = CACurrentMediaTime();
+    elapsed = end - start;
+    NSLog(@"%f",elapsed);
+    log = [NSString stringWithFormat:@"locations updated: %f\n", elapsed];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathTime];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+#endif
 }
 
 -(void)viewWillLayoutSubviews {
@@ -162,6 +207,10 @@
 }
 
 -(void)getLocations{
+#ifdef  TESTTIME
+    start = CACurrentMediaTime();
+#endif
+    
     FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
 #ifdef SIMULATOR
         NSString *url = [NSString stringWithFormat:@"http://localhost:8888/ResearchProject/server-side/get-group-location.php?user=%@",delegate.userName];
@@ -254,15 +303,38 @@ didReceiveResponse:(NSURLResponse *)response
             
         }
     }
-
-    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
-    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
-    NSString *log = [NSString stringWithFormat:@"%@ locations updated\n",[DateFormatter stringFromDate:[NSDate date]]];
-    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    
+    NSString *log;
+    NSFileHandle *fileHandle;
+#ifdef TESTTIME
+    end = CACurrentMediaTime();
+    elapsed = end - start;
+    NSLog(@"%f",elapsed);
+    log = [NSString stringWithFormat:@"locations updated: %f\n", elapsed];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathTime];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+#endif
     
-    if (refreshButtonTapped == NO) {
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    log = [NSString stringWithFormat:@"%@ locations updated\n",[DateFormatter stringFromDate:[NSDate date]]];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+        
+#ifdef TEST
+    /*test mode, refresh every 5 seconds if refresh button tapped*/
+//    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:
+//                                [self methodSignatureForSelector: @selector(timerCallback)]];
+//    [invocation setTarget:self];
+//    [invocation setSelector:@selector(timerCallback)];
+//    timer = [NSTimer scheduledTimerWithTimeInterval:5.0
+//                                         invocation:invocation repeats:NO];
+    [self updateUserLocation];
+    [self getLocations];
+#else
+    if (refreshButtonTapped == NO) {//if location updates caused by refresh button, does not call |timerCallback|
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:
                                     [self methodSignatureForSelector: @selector(timerCallback)]];
         [invocation setTarget:self];
@@ -272,6 +344,8 @@ didReceiveResponse:(NSURLResponse *)response
     } else {
         refreshButtonTapped = NO;
     }
+#endif
+
     
 }
 

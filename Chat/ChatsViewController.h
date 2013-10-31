@@ -7,7 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BubbleChatDetailViewController.h"
 
 @interface ChatsViewController : UITableViewController <NSXMLParserDelegate>
+@property (nonatomic, retain) BubbleChatDetailViewController *controller;
 
 @end

@@ -11,6 +11,11 @@
 #import "MessageInputView.h"
 #define DEVICE_SCHOOL
 // #define DEVICE_HOME
+//#define AUTOMATICTEST
+//#define TESTTIME
+//#define TESTSENDTIME
+//ƒ#define TEST
+//#define RESET
 
 
 @interface BubbleChatDetailViewController () {
@@ -27,6 +32,12 @@
     Boolean inUser;
     Boolean hasNewMessage;
     NSDictionary *lastMessage;
+    
+    Boolean isViewFirstLoad;
+    
+    double        start;
+    double        end;
+    double        elapsed;
 }
 
 @end
@@ -35,11 +46,9 @@
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    self = [super initWithNibName:@"BubbleChatDetailViewController" bundle:nibBundleOrNil];
     if (self) {
         // Custom initialization
-        
-        
     }
     return self;
 }
@@ -51,16 +60,28 @@
     self.title = @"Messages";
     FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
     self.userName = delegate.userName;
-    
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     self.messages =[[prefs objectForKey:self.groupId] mutableCopy];
     lastId = [prefs integerForKey:@"lastId"];
-    [self getNewMessages];
+    
+    if(delegate.firstLoadChatView){
+        NSLog(@"load chat view");
+        [self getNewMessages];
+        delegate.firstLoadChatView = NO;
+    }
     
     //Reset message, just for testing use
-//    self.messages = nil;
-//    lastId = 0;
-//    [self getNewMessages];
+#ifdef RESET
+    NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
+    [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
+    self.messages = nil;
+    lastId = 0;
+    [self getNewMessages];
+#endif
+    
+#ifdef AUTOMATICTEST
+    [self automaticSending];
+#endif
     
 }
 
@@ -75,6 +96,7 @@
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -82,6 +104,10 @@
 }
 
 - (void)getNewMessages {
+#ifdef  TESTTIME
+    start = CACurrentMediaTime();
+#endif
+    
 #ifdef SIMULATOR
     NSString *url = [NSString stringWithFormat:
                      @"http://localhost:8888/ResearchProject/server-side/messages.php?past=%d&t=%ld&groupId=%@",lastId,time(0),self.groupId];
@@ -167,6 +193,7 @@
         [request setURL:[NSURL URLWithString:url]];
         [request setHTTPMethod:@"POST"];
         NSMutableData *body = [NSMutableData data];
+        
         [body appendData:[[NSString stringWithFormat:@"user=%@&message=%@&groupId=%@",
                            self.userName,
                            text,self.groupId] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -188,6 +215,80 @@
         //does not call |getNewMessages| because every call add a new time call back.
         //[self getNewMessages];
     }
+}
+
+- (void)automaticSending
+{//automatically sending message, for test use only
+#ifdef  TESTSENDTIME
+        start = CACurrentMediaTime();
+#endif
+
+        [MessageSoundEffect playMessageSentSound];
+        [self.inputView.textView setText:nil];
+
+#ifdef SIMULATOR
+        NSString *url = [NSString stringWithFormat:
+                         @"http://localhost:8888/ResearchProject/server-side/add.php"];
+#endif
+        
+#ifdef DEVICE_SCHOOL
+        NSString *url = [NSString stringWithFormat:
+                         @"http://69.166.62.3/~bowang/gsoc/add.php"];
+#endif
+        
+#ifdef DEVICE_HOME
+        NSString *url = [NSString stringWithFormat:
+                         @"http://192.168.0.72:8888/ResearchProject/server-side/add.php"];
+#endif
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc]
+                                        init];
+        [request setURL:[NSURL URLWithString:url]];
+        [request setHTTPMethod:@"POST"];
+        NSMutableData *body = [NSMutableData data];
+        
+        [body appendData:[[NSString stringWithFormat:@"user=%@&message=%@&groupId=%@",
+                           self.userName,
+                           @"Sending Message Test",self.groupId] dataUsingEncoding:NSUTF8StringEncoding]];
+        
+        
+        [request setHTTPBody:body];
+        NSHTTPURLResponse *response = nil;
+        NSError *error = [[NSError alloc] init];
+        [NSURLConnection sendSynchronousRequest:request
+                              returningResponse:&response error:&error];
+        
+        FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+        NSString *log;
+        NSFileHandle *fileHandle;
+#ifdef TESTSENDTIME
+        end = CACurrentMediaTime();
+        elapsed = end - start;
+        NSLog(@"%f",elapsed);
+        log = [NSString stringWithFormat:@"Message Sended: %f\n", elapsed];
+        fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathTime];
+        [fileHandle seekToEndOfFile];
+        [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+#endif
+    
+        NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+        [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+        log = [NSString stringWithFormat:@"%@ Sending new message...\n",[DateFormatter stringFromDate:[NSDate date]]];
+        fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+        [fileHandle seekToEndOfFile];
+        [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+        
+        //does not call |getNewMessages| because every call add a new time call back.
+        //[self getNewMessages];
+#ifdef AUTOMATICTEST
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:
+                                [self methodSignatureForSelector: @selector(automaticSendingTimerCallback)]];
+    [invocation setTarget:self];
+    [invocation setSelector:@selector(automaticSendingTimerCallback)];
+    timer = [NSTimer scheduledTimerWithTimeInterval:0.0
+                                         invocation:invocation repeats:NO];
+#endif
+
 }
 
 #pragma mark - HTTP Connection
@@ -213,7 +314,6 @@ didReceiveResponse:(NSURLResponse *)response
     [chatParser setDelegate:self];
     [chatParser parse];
     
-    
     if (hasNewMessage) {
         [self.tableView reloadData]; //reload table if num of message increases
         [self scrollToBottomAnimated:YES];
@@ -222,27 +322,47 @@ didReceiveResponse:(NSURLResponse *)response
         [[NSUserDefaults standardUserDefaults] setInteger:lastId forKey:@"lastId"];
         [[NSNotificationCenter defaultCenter] postNotificationName:@"messageUpdate" object:self userInfo:lastMessage];
         hasNewMessage = NO;
-    }
+   }
     
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSString *log;
+    NSFileHandle *fileHandle;
+#ifdef TESTTIME
+    end = CACurrentMediaTime();
+    elapsed = end - start;
+    NSLog(@"%f",elapsed);
+    log = [NSString stringWithFormat:@"Message updated: %f\n", elapsed];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathTime];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+#endif
+
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    log = [NSString stringWithFormat:@"%@ Fetching Messages...\n",[DateFormatter stringFromDate:[NSDate date]]];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+#ifdef TEST
+    [self getNewMessages];
+#else
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:
                                 [self methodSignatureForSelector: @selector(timerCallback)]];
     [invocation setTarget:self];
     [invocation setSelector:@selector(timerCallback)];
     timer = [NSTimer scheduledTimerWithTimeInterval:5.0
                                          invocation:invocation repeats:NO];
-    
-    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
-    
-    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
-    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
-    NSString *log = [NSString stringWithFormat:@"%@ Fetching Messages...\n",[DateFormatter stringFromDate:[NSDate date]]];
-    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
-    [fileHandle seekToEndOfFile];
-    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+#endif
 }
 
 - (void)timerCallback {
     [self getNewMessages];
+}
+
+- (void)automaticSendingTimerCallback {
+    [self automaticSending];
 }
 
 #pragma mark - XML Parser

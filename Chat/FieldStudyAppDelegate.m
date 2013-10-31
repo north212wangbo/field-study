@@ -16,15 +16,20 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     self.documentTXTPath = [documentsDirectory stringByAppendingPathComponent:@"Notes.txt"];
+    self.documentTXTPathTime = [documentsDirectory stringByAppendingPathComponent:@"Time.txt"];
     
     NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
     [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
     
     NSString *savedString = [NSString stringWithFormat:@"%@ Start logging...\n",[DateFormatter stringFromDate:[NSDate date]]];
     [savedString writeToFile:self.documentTXTPath atomically:YES encoding:NSUTF8StringEncoding error:NULL];
+    [savedString writeToFile:self.documentTXTPathTime atomically:YES encoding:NSUTF8StringEncoding error:NULL];
     
     [UIApplication sharedApplication].idleTimerDisabled = YES;
-    return YES;
+    [[UIScreen mainScreen] setBrightness:1.0];
+    
+    self.firstLoadChatView = YES;
+    return YES; 
 }
 							
 - (void)applicationWillResignActive:(UIApplication *)application

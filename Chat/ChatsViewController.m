@@ -12,6 +12,7 @@
 #import "BubbleChatDetailViewController.h"
 #define DEVICE_SCHOOL
 //#define DEVICE_HOME
+//#define SWITCHVIEW
 
 @interface ChatsViewController () {
     
@@ -30,6 +31,8 @@
     
     NSString *groupId;
     Boolean inGroupId;
+    
+    Boolean firstTime;
     
     NSMutableArray *groups;
 }
@@ -55,6 +58,7 @@
  
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    firstTime = YES;
     [self getGrouplist];
 }
 
@@ -68,6 +72,20 @@
     NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    //test switch view use
+#ifdef SWITCHVIEW
+//    [NSTimer scheduledTimerWithTimeInterval:5.0f
+//                                     target:self
+//                                   selector: @selector(switchView)
+//                                   userInfo:nil
+//                                    repeats:NO];
+    [self switchView];
+#endif
+}
+
+-(void)switchView{
+    [self.tabBarController setSelectedIndex:0];
 }
 
 - (void)didReceiveMemoryWarning
@@ -170,10 +188,10 @@
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
     if ([segue.identifier isEqualToString:@"bubbleMessageSegue"]) {
-        BubbleChatDetailViewController *controller = segue.destinationViewController;
+        self.controller = segue.destinationViewController;
         NSDictionary *itemAtIndex = (NSDictionary *)[groups objectAtIndex:indexPath.row];
-        controller.groupId = [itemAtIndex objectForKey:@"groupId"];
-        controller.hidesBottomBarWhenPushed = YES;
+        self.controller.groupId = [itemAtIndex objectForKey:@"groupId"];
+        self.controller.hidesBottomBarWhenPushed = YES;
     } 
 }
 

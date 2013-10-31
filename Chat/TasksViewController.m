@@ -11,6 +11,10 @@
 #import "TaskDetailViewController.h"
 #define DEVICE_SCHOOL
 //#define DEVICE_HOME
+//#define AUTOMATICTEST
+//#define TESTTIME
+//#define TESTSUBMITTIME
+//#define TEST
 
 @interface TasksViewController () {
     NSMutableArray *tasks;
@@ -41,6 +45,10 @@
     NSString *refreshSampleDateString;
     
     Boolean getTaskManually;
+    
+    double        start;
+    double        end;
+    double        elapsed;
 }
 
 @end
@@ -69,7 +77,6 @@
     
     refreshDateString = @"1970-01-01 00:00:00";
     refreshSampleDateString = @"1970-01-01 00:00:00";
-
     [self getTaskList];
 }
 
@@ -83,6 +90,18 @@
     NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    //switch view test
+//    [NSTimer scheduledTimerWithTimeInterval:5.0f
+//                                     target:self
+//                                   selector: @selector(switchView)
+//                                   userInfo:nil
+//                                    repeats:NO];
+    
+}
+
+- (void)switchView{//switch view test
+    [self.tabBarController setSelectedIndex:0];
 }
 
 - (void)didReceiveMemoryWarning
@@ -236,6 +255,10 @@
 }
 
 -(void)getTaskList{
+#ifdef  TESTTIME
+    start = CACurrentMediaTime();
+#endif
+    
     FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
     user = delegate.userName;
     
@@ -320,21 +343,37 @@
         }
         
         if (!getTaskManually) {
+#ifdef TEST
+            [self getTaskList];
+#else
             NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:
                                         [self methodSignatureForSelector: @selector(timerCallback)]];
             [invocation setTarget:self];
             [invocation setSelector:@selector(timerCallback)];
             timer = [NSTimer scheduledTimerWithTimeInterval:5.0
                                                  invocation:invocation repeats:NO];
+#endif
         }
         getTaskManually = NO;
         
         FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
         
+        NSString *log;
+        NSFileHandle *fileHandle;
+#ifdef TESTTIME
+        end = CACurrentMediaTime();
+        elapsed = end - start;
+        NSLog(@"%f",elapsed);
+        log = [NSString stringWithFormat:@"Task updated: %f\n", elapsed];
+        fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathTime];
+        [fileHandle seekToEndOfFile];
+        [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+#endif
+        
         NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
         [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
-        NSString *log = [NSString stringWithFormat:@"%@ Task refreshed!\n",[DateFormatter stringFromDate:[NSDate date]]];
-        NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+        log = [NSString stringWithFormat:@"%@ Task refreshed!\n",[DateFormatter stringFromDate:[NSDate date]]];
+        fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
         [fileHandle seekToEndOfFile];
         [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
         
@@ -344,12 +383,28 @@
         
         FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
         
-        NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
-        [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
-        NSString *log = [NSString stringWithFormat:@"%@ User submitted a task\n",[DateFormatter stringFromDate:[NSDate date]]];
-        NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+        NSString *log;
+        NSFileHandle *fileHandle;
+#ifdef TESTSUBMITTIME
+        end = CACurrentMediaTime();
+        elapsed = end - start;
+        NSLog(@"%f",elapsed);
+        log = [NSString stringWithFormat:@"locations updated: %f\n", elapsed];
+        fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathTime];
         [fileHandle seekToEndOfFile];
         [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+#endif
+        
+        NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+        [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+        log = [NSString stringWithFormat:@"%@ User submitted a task\n",[DateFormatter stringFromDate:[NSDate date]]];
+        fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+        [fileHandle seekToEndOfFile];
+        [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+        
+#ifdef AUTOMATICTEST
+        [self automaticSubmit];
+#endif
     }
 }
 
@@ -441,6 +496,70 @@ didStartElement:(NSString *)elementName
 }
 
 - (IBAction)submit:(id)sender {
+    self.submitButton.enabled = NO;
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+    
+    for (int i=0; i<[tasks count];i++) {
+        if ([[tasksFinished objectAtIndex:i] boolValue]==YES) {
+            NSDictionary *itemAtIndex = [tasks objectAtIndex:i];
+            NSString *saID = [itemAtIndex objectForKey:@"id"];
+#ifdef DEVICE_SCHOOL
+            NSString *url = [NSString stringWithFormat:@"http://69.166.62.3/~bowang/gsoc/update-task-status.php?user=%@&sample=%@&finish=YES",user,saID];
+#endif
+            
+#ifdef DEVICE_HOME
+            NSString *url =[NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/update-task-status.php?user=%@&sample=%@&finish=YES",user,saID];
+#endif
+            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+            [request setURL:[NSURL URLWithString:url]];
+            [request setHTTPMethod:@"GET"];
+            
+            
+            conn2 =[[NSURLConnection alloc] initWithRequest:request delegate:self];
+            if (conn2)
+            {
+                NSLog(@"submit task connected");
+                receivedData = [[NSMutableData alloc] init];
+            }
+            else
+            {
+                NSLog(@"not connected");
+            }
+        } else {
+            NSDictionary *itemAtIndex = [tasks objectAtIndex:i];
+            NSString *saID = [NSString stringWithFormat:@"%@",[itemAtIndex objectForKey:@"id"]];
+#ifdef DEVICE_SCHOOL
+            NSString *url = [NSString stringWithFormat:@"http://69.166.62.3/~bowang/gsoc/update-task-status.php?user=%@&sample=%@&finish=NO",user,saID];
+#endif
+            
+#ifdef DEVICE_HOME
+            NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/update-task-status.php?user=%@&sample=%@&finish=NO",user,saID];
+#endif
+            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+            [request setURL:[NSURL URLWithString:url]];
+            [request setHTTPMethod:@"GET"];
+            
+            
+            conn2 =[[NSURLConnection alloc] initWithRequest:request delegate:self];
+            if (conn2)
+            {
+                NSLog(@"connected");
+                receivedData = [[NSMutableData alloc] init];
+            }
+            else
+            {
+                NSLog(@"not connected");
+            }
+        }
+    }
+}
+
+- (void)automaticSubmit
+{//automatically submitting task, for test use only
+#ifdef  TESTSUBMITTIME
+    start = CACurrentMediaTime();
+#endif
+    
     self.submitButton.enabled = NO;
     [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
     

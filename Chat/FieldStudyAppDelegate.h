@@ -14,5 +14,11 @@
 @property (strong, nonatomic) NSString *userName;
 @property (strong, nonatomic) NSMutableArray *messages;
 @property (strong, nonatomic) NSString *documentTXTPath;
+@property (strong, nonatomic) NSString *documentTXTPathTime;
+@property double switchViewStart;
+@property double switchViewEnd;
+
+@property Boolean firstLoadChatView;
+
 
 @end
