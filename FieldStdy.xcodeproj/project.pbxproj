@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2C3B7D7118BAB9B20029AE30 /* PowerManagement.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C3B7D7018BAB9B20029AE30 /* PowerManagement.m */; };
+		2C3B7D7B18BFDE170029AE30 /* PGPowerUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C3B7D7A18BFDE170029AE30 /* PGPowerUtils.m */; };
 		2CA5A35E17A1D3A400BB16E9 /* NotiView.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CA5A35D17A1D3A400BB16E9 /* NotiView.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2CA5A36017A1D5E600BB16E9 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CA5A35F17A1D5E600BB16E9 /* QuartzCore.framework */; };
 		2CA5A36417A1D64E00BB16E9 /* NSTimer+Blocks.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CA5A36317A1D64E00BB16E9 /* NSTimer+Blocks.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
@@ -69,6 +71,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2C3B7D6F18BAB9B20029AE30 /* PowerManagement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerManagement.h; sourceTree = "<group>"; };
+		2C3B7D7018BAB9B20029AE30 /* PowerManagement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerManagement.m; sourceTree = "<group>"; };
+		2C3B7D7A18BFDE170029AE30 /* PGPowerUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PGPowerUtils.m; sourceTree = "<group>"; };
+		2C3B7D7C18BFDE200029AE30 /* PGPowerUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PGPowerUtils.h; sourceTree = "<group>"; };
 		2CA5A35C17A1D3A400BB16E9 /* NotiView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NotiView.h; sourceTree = "<group>"; };
 		2CA5A35D17A1D3A400BB16E9 /* NotiView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NotiView.m; sourceTree = "<group>"; };
 		2CA5A35F17A1D5E600BB16E9 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -171,6 +177,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2C3B7D6E18BAB9690029AE30 /* PowerManagement */ = {
+			isa = PBXGroup;
+			children = (
+				2C3B7D7C18BFDE200029AE30 /* PGPowerUtils.h */,
+				2C3B7D7A18BFDE170029AE30 /* PGPowerUtils.m */,
+				2C3B7D6F18BAB9B20029AE30 /* PowerManagement.h */,
+				2C3B7D7018BAB9B20029AE30 /* PowerManagement.m */,
+			);
+			name = PowerManagement;
+			sourceTree = "<group>";
+		};
 		2CA5A35B17A1D3A400BB16E9 /* NotiView */ = {
 			isa = PBXGroup;
 			children = (
@@ -224,6 +241,7 @@
 		447341D31777880D00F54DBB /* FieldStudy */ = {
 			isa = PBXGroup;
 			children = (
+				2C3B7D6E18BAB9690029AE30 /* PowerManagement */,
 				44C0D37F179478FE00245D99 /* TaskTrack */,
 				44C0D37E179478E700245D99 /* Login */,
 				44C0D37D179478BD00245D99 /* LocationTrack */,
@@ -487,6 +505,8 @@
 				443E9637179CAA1F00F7B8A7 /* MapAnnotationView.m in Sources */,
 				2CA5A35E17A1D3A400BB16E9 /* NotiView.m in Sources */,
 				2CA5A36417A1D64E00BB16E9 /* NSTimer+Blocks.m in Sources */,
+				2C3B7D7118BAB9B20029AE30 /* PowerManagement.m in Sources */,
+				2C3B7D7B18BFDE170029AE30 /* PGPowerUtils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -573,9 +593,23 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Chat/FieldStdy-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../Desktop/lp_solve_5.5.2.0_dev_osx32\"",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../../../Desktop/nlopt",
+				);
 				INFOPLIST_FILE = "Chat/FieldStdy-Info.plist";
 				"INFOPLIST_FILE[sdk=*]" = "Chat/FieldStdy-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../Desktop/lp_solve_5.5.2.0_dev_osx32\"",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../../../Desktop/nlopt",
+				);
 				PRODUCT_NAME = FieldStdy;
+				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -585,8 +619,22 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Chat/FieldStdy-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../Desktop/lp_solve_5.5.2.0_dev_osx32\"",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../../../Desktop/nlopt",
+				);
 				INFOPLIST_FILE = "Chat/FieldStdy-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../Desktop/lp_solve_5.5.2.0_dev_osx32\"",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../../../Desktop/nlopt",
+				);
 				PRODUCT_NAME = FieldStdy;
+				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

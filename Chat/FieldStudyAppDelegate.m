@@ -8,7 +8,9 @@
 
 #import "FieldStudyAppDelegate.h"
 
-@implementation FieldStudyAppDelegate
+@implementation FieldStudyAppDelegate{
+    NSTimer *timer;
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -17,6 +19,8 @@
     NSString *documentsDirectory = [paths objectAtIndex:0];
     self.documentTXTPath = [documentsDirectory stringByAppendingPathComponent:@"Notes.txt"];
     self.documentTXTPathTime = [documentsDirectory stringByAppendingPathComponent:@"Time.txt"];
+    self.documentTXTPathAction = [documentsDirectory stringByAppendingPathComponent:@"ActionOneSec.txt"];
+    self.documentTXTPathEnergy = [documentsDirectory stringByAppendingPathComponent:@"EnergyTime.txt"];
     
     NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
     [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
@@ -24,12 +28,32 @@
     NSString *savedString = [NSString stringWithFormat:@"%@ Start logging...\n",[DateFormatter stringFromDate:[NSDate date]]];
     [savedString writeToFile:self.documentTXTPath atomically:YES encoding:NSUTF8StringEncoding error:NULL];
     [savedString writeToFile:self.documentTXTPathTime atomically:YES encoding:NSUTF8StringEncoding error:NULL];
+    [savedString writeToFile:self.documentTXTPathAction atomically:YES encoding:NSUTF8StringEncoding error:NULL];
+    [savedString writeToFile:self.documentTXTPathEnergy atomically:YES encoding:NSUTF8StringEncoding error:NULL];
     
-    [UIApplication sharedApplication].idleTimerDisabled = YES;
-    [[UIScreen mainScreen] setBrightness:1.0];
+    self.appStartTime = CACurrentMediaTime();
+    self.experimentTime = 3600;
+    self.actionRate = 0.01;
     
-    self.firstLoadChatView = YES;
+    [UIApplication sharedApplication].idleTimerDisabled = YES;  //keep backlight on
+    
+    self.pm = [[PowerManagement alloc] init];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:
+                                [self methodSignatureForSelector: @selector(timerCallback)]];
+    [invocation setTarget:self];
+    [invocation setSelector:@selector(timerCallback)];
+    timer = [NSTimer scheduledTimerWithTimeInterval:10.0
+                                         invocation:invocation repeats:YES];
+    
     return YES; 
+}
+
+-(void)timerCallback{
+    double timePast = CACurrentMediaTime()-self.appStartTime;
+    double timeLeft = self.experimentTime - timePast;
+    double backlightLevel = [self.pm solve:timeLeft];
+    self.actionRate = [self.pm solveActionRate:timeLeft backlight:backlightLevel];
+    [[UIScreen mainScreen] setBrightness:backlightLevel];
 }
 							
 - (void)applicationWillResignActive:(UIApplication *)application
@@ -44,6 +68,10 @@
     [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
     NSString *log = [NSString stringWithFormat:@"%@ App Enter background\n",[DateFormatter stringFromDate:[NSDate date]]];
     NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:self.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:self.documentTXTPathAction];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 }

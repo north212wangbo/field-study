@@ -10,12 +10,13 @@
 #import "FieldStudyAppDelegate.h"
 #import "MessageInputView.h"
 #define DEVICE_SCHOOL
-// #define DEVICE_HOME
+//#define DEVICE_HOME
 //#define AUTOMATICTEST
 //#define TESTTIME
 //#define TESTSENDTIME
-//ƒ#define TEST
+//#define TEST
 //#define RESET
+//#define CHARACTERIZE_TYPING
 
 
 @interface BubbleChatDetailViewController () {
@@ -32,8 +33,6 @@
     Boolean inUser;
     Boolean hasNewMessage;
     NSDictionary *lastMessage;
-    
-    Boolean isViewFirstLoad;
     
     double        start;
     double        end;
@@ -63,12 +62,9 @@
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     self.messages =[[prefs objectForKey:self.groupId] mutableCopy];
     lastId = [prefs integerForKey:@"lastId"];
+
     
-    if(delegate.firstLoadChatView){
-        NSLog(@"load chat view");
-        [self getNewMessages];
-        delegate.firstLoadChatView = NO;
-    }
+    [self getNewMessages];
     
     //Reset message, just for testing use
 #ifdef RESET
@@ -90,10 +86,19 @@
     
     NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
     [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
-    NSString *log = [NSString stringWithFormat:@"%@ Entering ChatsDetailView\n",[DateFormatter stringFromDate:[NSDate date]]];
-    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    NSString *log = [NSString stringWithFormat:@"%@ Entering ChatDetailView\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    double enterChatDetailViewTime = CACurrentMediaTime() - delegate.appStartTime;
+    log = [NSString stringWithFormat:@"%f Push-ChatDetailView-end\n",enterChatDetailViewTime];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    NSLog(@"push-chatdetailview-end");
+    //Characterize pop up text view
+    //[self popUpTextViewTest];
 }
 
 
@@ -108,6 +113,13 @@
     start = CACurrentMediaTime();
 #endif
     
+    FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
+    double getMessageStartTime = CACurrentMediaTime() - delegate.appStartTime;
+    NSString *log = [NSString stringWithFormat:@"%f Fetching-Messages-start\n",getMessageStartTime];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
 #ifdef SIMULATOR
     NSString *url = [NSString stringWithFormat:
                      @"http://localhost:8888/ResearchProject/server-side/messages.php?past=%d&t=%ld&groupId=%@",lastId,time(0),self.groupId];
@@ -120,7 +132,7 @@
     
 #ifdef DEVICE_HOME
     NSString *url = [NSString stringWithFormat:
-                     @"http://192.168.0.72:8888/ResearchProject/server-side/messages.php?past=%d&t=%ld&groupId=%@",lastId,time(0),self.groupId];
+                     @"http://192.168.3.102:8888/ResearchProject/server-side/messages.php?past=%d&t=%ld&groupId=%@",lastId,time(0),self.groupId];
 #endif
     NSLog(@"Group id is: %@",self.groupId);
     
@@ -169,7 +181,26 @@
 
 - (void)sendPressed:(UIButton *)sender withText:(NSString *)text
 {
+#ifdef  TESTSENDTIME
+    start = CACurrentMediaTime();
+#endif
     //[self.messages addObject:text];
+    FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
+    
+    double enterChatDetailViewTime = CACurrentMediaTime() - delegate.appStartTime;
+    NSString *log = [NSString stringWithFormat:@"%f Typing-end\n",enterChatDetailViewTime];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    NSLog(@"typing end");
+    
+    
+    double sendMessageStartTime = CACurrentMediaTime() - delegate.appStartTime;
+    log = [NSString stringWithFormat:@"%f Sending-Message-start\n",sendMessageStartTime];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
     [MessageSoundEffect playMessageSentSound];
     [self.inputView.textView setText:nil];
     
@@ -186,7 +217,7 @@
         
 #ifdef DEVICE_HOME
         NSString *url = [NSString stringWithFormat:
-                         @"http://192.168.0.72:8888/ResearchProject/server-side/add.php"];
+                         @"http://192.168.3.102:8888/ResearchProject/server-side/add.php"];
 #endif
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc]
                                         init];
@@ -202,18 +233,31 @@
         NSError *error = [[NSError alloc] init];
         [NSURLConnection sendSynchronousRequest:request
                               returningResponse:&response error:&error];
-        
-        FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
-        
+              
         NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
         [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
         NSString *log = [NSString stringWithFormat:@"%@ Sending new message...\n",[DateFormatter stringFromDate:[NSDate date]]];
-        NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+        NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
+        [fileHandle seekToEndOfFile];
+        [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+        
+        double sendMessageEndTime = CACurrentMediaTime() - delegate.appStartTime;
+        log = [NSString stringWithFormat:@"%f Sending-Message-end\n",sendMessageEndTime];
+        fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
         [fileHandle seekToEndOfFile];
         [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
         
         //does not call |getNewMessages| because every call add a new time call back.
         //[self getNewMessages];
+#ifdef TESTSENDTIME
+        end = CACurrentMediaTime();
+        elapsed = end - start;
+        NSLog(@"%f",elapsed);
+        log = [NSString stringWithFormat:@"Message Sended: %f\n", elapsed];
+        fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathTime];
+        [fileHandle seekToEndOfFile];
+        [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+#endif
     }
 }
 
@@ -238,7 +282,7 @@
         
 #ifdef DEVICE_HOME
         NSString *url = [NSString stringWithFormat:
-                         @"http://192.168.0.72:8888/ResearchProject/server-side/add.php"];
+                         @"http://192.168.3.102:8888/ResearchProject/server-side/add.php"];
 #endif
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc]
                                         init];
@@ -317,12 +361,11 @@ didReceiveResponse:(NSURLResponse *)response
     if (hasNewMessage) {
         [self.tableView reloadData]; //reload table if num of message increases
         [self scrollToBottomAnimated:YES];
-        
         [[NSUserDefaults standardUserDefaults] setObject:self.messages forKey:self.groupId];
         [[NSUserDefaults standardUserDefaults] setInteger:lastId forKey:@"lastId"];
         [[NSNotificationCenter defaultCenter] postNotificationName:@"messageUpdate" object:self userInfo:lastMessage];
         hasNewMessage = NO;
-   }
+    }
     
     FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
     
@@ -341,6 +384,12 @@ didReceiveResponse:(NSURLResponse *)response
     NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
     [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
     log = [NSString stringWithFormat:@"%@ Fetching Messages...\n",[DateFormatter stringFromDate:[NSDate date]]];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    double getMessageEndTime = CACurrentMediaTime() - delegate.appStartTime;
+    log = [NSString stringWithFormat:@"%f Fetching-Messages-end\n",getMessageEndTime];
     fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
@@ -352,7 +401,7 @@ didReceiveResponse:(NSURLResponse *)response
                                 [self methodSignatureForSelector: @selector(timerCallback)]];
     [invocation setTarget:self];
     [invocation setSelector:@selector(timerCallback)];
-    timer = [NSTimer scheduledTimerWithTimeInterval:5.0
+    timer = [NSTimer scheduledTimerWithTimeInterval:delegate.actionRate
                                          invocation:invocation repeats:NO];
 #endif
 }
@@ -416,6 +465,38 @@ didStartElement:(NSString *)elementName
     }
 }
 
+#ifdef CHARACTERIZE_TYPING
+-(void)textViewDidChange:(UITextView *)textView {
+    FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
+    
+    double typeTime = CACurrentMediaTime() - delegate.appStartTime;
+    NSString *log = [NSString stringWithFormat:@"%f Key-stroke-detected\n",typeTime];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+}
+#endif
+
+-(void)textViewDidBeginEditing:(UITextView *)textView {
+    FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
+    
+    double editStartTime = CACurrentMediaTime() - delegate.appStartTime;
+    NSString *log = [NSString stringWithFormat:@"%f Typing-start\n",editStartTime];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    NSLog(@"typing start");
+}
+
+-(void)textViewDidEndEditing:(UITextView *)textView {
+    NSLog(@"end editing");
+}
+
+-(void)popUpTextViewTest {
+    [self.inputView.textView becomeFirstResponder];
+    [self.inputView.textView resignFirstResponder];
+    [self popUpTextViewTest];
+}
 
 
 @end

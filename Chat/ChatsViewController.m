@@ -32,8 +32,6 @@
     NSString *groupId;
     Boolean inGroupId;
     
-    Boolean firstTime;
-    
     NSMutableArray *groups;
 }
 
@@ -58,7 +56,6 @@
  
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    firstTime = YES;
     [self getGrouplist];
 }
 
@@ -68,20 +65,24 @@
     
     NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
     [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
-    NSString *log = [NSString stringWithFormat:@"%@ Entering ChatsView\n",[DateFormatter stringFromDate:[NSDate date]]];
-    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    NSString *log = [NSString stringWithFormat:@"%@ Entering MapView\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
     
-    //test switch view use
+    double enterChatViewTime = CACurrentMediaTime() - delegate.appStartTime;
+    log = [NSString stringWithFormat:@"%f Entering-ChatView\n",enterChatViewTime];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+/*
+ *test switch view use
+ */
 #ifdef SWITCHVIEW
-//    [NSTimer scheduledTimerWithTimeInterval:5.0f
-//                                     target:self
-//                                   selector: @selector(switchView)
-//                                   userInfo:nil
-//                                    repeats:NO];
     [self switchView];
 #endif
+
 }
 
 -(void)switchView{
@@ -186,6 +187,15 @@
 }
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    double enterChatDetailViewTime = CACurrentMediaTime() - delegate.appStartTime;
+    NSString *log = [NSString stringWithFormat:@"%f Push-ChatDetailView-start\n",enterChatDetailViewTime];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    NSLog(@"push-chatdetailview-start");
+    
     NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
     if ([segue.identifier isEqualToString:@"bubbleMessageSegue"]) {
         self.controller = segue.destinationViewController;
@@ -209,7 +219,7 @@
     
 #ifdef DEVICE_HOME
     NSString *url = [NSString stringWithFormat:
-                     @"http://192.168.0.72:8888/ResearchProject/server-side/group-list.php?user=%@",delegate.userName];
+                     @"http://192.168.3.102:8888/ResearchProject/server-side/group-list.php?user=%@",delegate.userName];
 #endif
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
     [request setURL:[NSURL URLWithString:url]];

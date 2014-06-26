@@ -53,8 +53,14 @@
     
     NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
     [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
-    NSString *log = [NSString stringWithFormat:@"%@ Entering LoginView\n",[DateFormatter stringFromDate:[NSDate date]]];
-    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    NSString *log = [NSString stringWithFormat:@"%@ Login-Typing-start\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    double enterLoginViewTime = CACurrentMediaTime() - delegate.appStartTime;
+    log = [NSString stringWithFormat:@"%f Login-Typing-start\n",enterLoginViewTime];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 }
@@ -80,6 +86,21 @@
             
             NSLog(@"Login:%@", user);
             NSLog(@"Password: %@", password);
+            
+            FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+            
+            NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+            [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+            NSString *log = [NSString stringWithFormat:@"%@ Login-Typing-end\n",[DateFormatter stringFromDate:[NSDate date]]];
+            NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
+            [fileHandle seekToEndOfFile];
+            [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+            
+            double enterLoginViewTime = CACurrentMediaTime() - delegate.appStartTime;
+            log = [NSString stringWithFormat:@"%f Login-Typing-end\n",enterLoginViewTime];
+            fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+            [fileHandle seekToEndOfFile];
+            [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
             [self authenticate];
         } else {
             NSLog(@"Canceled!");
@@ -89,6 +110,22 @@
 
 
 - (void)authenticate {
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    NSString *log = [NSString stringWithFormat:@"%@ Authentication-start\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    double enterLoginViewTime = CACurrentMediaTime() - delegate.appStartTime;
+    log = [NSString stringWithFormat:@"%f Authentication-start\n",enterLoginViewTime];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    
 #ifdef SIMULATOR
     NSString *url = [NSString stringWithFormat:
                      @"http://localhost:8888/ResearchProject/server-side/login.php?user=%@&passwor%@",user,password];
@@ -101,7 +138,7 @@
     
 #ifdef DEVICE_HOME
     NSString *url = [NSString stringWithFormat:
-                     @"http://192.168.0.72:8888/ResearchProject/server-side/login.php?user=%@&password=%@",user,password];
+                     @"http://192.168.3.102:8888/ResearchProject/server-side/login.php?user=%@&password=%@",user,password];
 #endif
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
@@ -135,13 +172,14 @@ didReceiveResponse:(NSURLResponse *)response
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
+    FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
+    
     if (connection == conn) {
         parser = [[NSXMLParser alloc] initWithData:receivedData];
         [parser setDelegate:self];
         [parser parse];
         
         if ([success isEqualToString:@"1"] ) {
-            FieldStudyAppDelegate *delegate = (FieldStudyAppDelegate *)[[UIApplication sharedApplication] delegate];
             delegate.userName = userName;
             UIAlertView *loginSucceed = [[UIAlertView alloc] initWithTitle:@"Login Successfully" message:@"" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
             [loginSucceed show];
@@ -168,6 +206,22 @@ didReceiveResponse:(NSURLResponse *)response
             [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
         }
     }
+    
+    NSString *log;
+    NSFileHandle *fileHandle;
+    
+    double loginEndTime = CACurrentMediaTime() - delegate.appStartTime;
+    NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
+    [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
+    log = [NSString stringWithFormat:@"%@ Authentication-end\n",[DateFormatter stringFromDate:[NSDate date]]];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    log = [NSString stringWithFormat:@"%f Authentication-end\n",loginEndTime];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
     
 }
 

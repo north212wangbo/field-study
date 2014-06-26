@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import <MapKit/MapKit.h>
 
-@interface TaskDetailViewController : UIViewController
+@interface TaskDetailViewController : UIViewController <UITextViewDelegate>
 
 @property (strong,nonatomic) NSString *taskId;
 @property (weak, nonatomic) IBOutlet UITextView *taskDetail;

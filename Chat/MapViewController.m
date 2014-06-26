@@ -13,10 +13,11 @@
 #import "MapAnnotationView.h"
 #import "NotiView.h"
 #import "NSTimer+Blocks.h"
+
 #define METERS_PER_MILE 1609.344
 #define DEVICE_SCHOOL
 //#define DEVICE_HOME
-#define TEST
+//#define TEST
 //#define SWITCHVIEW
 //#define TESTTIME
 //#define SWITCHVIEWTIME
@@ -107,8 +108,14 @@
     
     NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
     [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
-    NSString *log = [NSString stringWithFormat:@"%@ Entering MapView\n",[DateFormatter stringFromDate:[NSDate date]]];
-    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    NSString *log = [NSString stringWithFormat:@"%@ Entering-MapView\n",[DateFormatter stringFromDate:[NSDate date]]];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    double enterMapViewTime = CACurrentMediaTime() - delegate.appStartTime;
+    log = [NSString stringWithFormat:@"%f Entering-MapView\n",enterMapViewTime];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 
@@ -191,7 +198,7 @@
 #endif
     
 #ifdef DEVICE_HOME
-        NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/update-user-location.php?user=%@&latitude=%f&longitude=%f", delegate.userName, self.FieldMapView.userLocation.coordinate.latitude, self.FieldMapView.userLocation.coordinate.longitude];
+        NSString *url = [NSString stringWithFormat:@"http://192.168.3.102:8888/ResearchProject/server-side/update-user-location.php?user=%@&latitude=%f&longitude=%f", delegate.userName, self.FieldMapView.userLocation.coordinate.latitude, self.FieldMapView.userLocation.coordinate.longitude];
 #endif
         
         
@@ -207,11 +214,16 @@
 }
 
 -(void)getLocations{
+    FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
+    double getLocationStartTime = CACurrentMediaTime() - delegate.appStartTime;
+    NSString *log = [NSString stringWithFormat:@"%f Locations-Update-start\n",getLocationStartTime];
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 #ifdef  TESTTIME
     start = CACurrentMediaTime();
 #endif
     
-    FieldStudyAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
 #ifdef SIMULATOR
         NSString *url = [NSString stringWithFormat:@"http://localhost:8888/ResearchProject/server-side/get-group-location.php?user=%@",delegate.userName];
 #endif
@@ -221,7 +233,7 @@
 #endif
         
 #ifdef DEVICE_HOME
-        NSString *url = [NSString stringWithFormat:@"http://192.168.0.72:8888/ResearchProject/server-side/get-group-location.php?user=%@",delegate.userName];
+        NSString *url = [NSString stringWithFormat:@"http://192.168.3.102:8888/ResearchProject/server-side/get-group-location.php?user=%@",delegate.userName];
 #endif
         
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
@@ -316,9 +328,15 @@ didReceiveResponse:(NSURLResponse *)response
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
 #endif
     
+    double getLocationEndTime = CACurrentMediaTime() - delegate.appStartTime;
     NSDateFormatter *DateFormatter=[[NSDateFormatter alloc] init];
     [DateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss"];
-    log = [NSString stringWithFormat:@"%@ locations updated\n",[DateFormatter stringFromDate:[NSDate date]]];
+    log = [NSString stringWithFormat:@"%@ locations updated end\n",[DateFormatter stringFromDate:[NSDate date]]];
+    fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPathAction];
+    [fileHandle seekToEndOfFile];
+    [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    log = [NSString stringWithFormat:@"%f Locations-Update-end\n",getLocationEndTime];
     fileHandle = [NSFileHandle fileHandleForWritingAtPath:delegate.documentTXTPath];
     [fileHandle seekToEndOfFile];
     [fileHandle writeData:[log dataUsingEncoding:NSUTF8StringEncoding]];
@@ -339,7 +357,7 @@ didReceiveResponse:(NSURLResponse *)response
                                     [self methodSignatureForSelector: @selector(timerCallback)]];
         [invocation setTarget:self];
         [invocation setSelector:@selector(timerCallback)];
-        timer = [NSTimer scheduledTimerWithTimeInterval:5.0
+        timer = [NSTimer scheduledTimerWithTimeInterval:delegate.actionRate
                                              invocation:invocation repeats:NO];
     } else {
         refreshButtonTapped = NO;
